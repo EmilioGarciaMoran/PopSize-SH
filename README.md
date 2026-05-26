@@ -1,136 +1,108 @@
 # PopSize — Tamaño Poblacional Efectivo en Homínidos Arcaicos
-# Proyecto 3 — Chat nuevo
-# Autor: Emilio García-Morán — emilio.garcia.moran@uva.es
-# ORCID: 0000-0002-2487-6686
-# Fecha inicio: 17 Mayo 2026
+**Autor:** Emilio García-Morán — emilio.garcia.moran@uva.es  
+**ORCID:** 0000-0002-2487-6686  
+**Universidad de Valladolid**  
+**Período:** Mayo 2026  
+**Estado:** ✅ Manuscrito enviado · ⏳ Revisión editorial pendiente
 
-## Contexto — de dónde viene esto
+---
 
-Durante el desarrollo del paper EastWestDM (Genome Medicine submission
-8933a7cc-43ae-49d7-a8b1-ca460df4cfc8) se procesaron 5 especímenes de
-Sima de los Huesos (430,000 ya) remapeados a hg38:
+## Pregunta científica
 
-```
-~/EastWestDM/results_sima_hg38/results/
-  femurXIII_hg38_rescaled.bam
-  incisor_hg38_rescaled.bam
-  molar_L35_hg38_rescaled.bam
-  scapula_hg38_rescaled.bam
-  femur_fragment_hg38_rescaled.bam
-```
+¿Cuándo ocurrió el cuello de botella demográfico neandertal?
 
-Pipeline: AdapterRemoval → BWA-MEM (-k16) → Picard MarkDuplicates →
-mapDamage 2.2.1 (--rescale, MCMC) → hg38
+Si Ne(SH) >> Ne(Vindija) → el colapso ocurrió **después de 430 ka**  
+Si Ne(SH) ≈ Ne(Vindija) → el colapso es **anterior a 430 ka**
 
-Cobertura media: 1.18× genome-wide
-Accesión original: PRJEB10597 (Meyer et al. 2016, Nature)
+---
 
-También disponibles:
-- ~/EastWestDM/act3/Vindija_variants.vcf.gz    (Neandertal ~44 ka)
-- ~/EastWestDM/act3/D17_variants.vcf.gz         (Denisovano ~50 ka)
-- ~/EastWestDM/act3/Ust_variants.vcf.gz          (Humano moderno ~45 ka)
+## Datos
 
-## La hipótesis central
+| Tipo | Fuente | Accesión |
+|------|--------|----------|
+| BAMs Sima de los Huesos (5 especímenes, hg38+mapDamage) | Meyer et al. 2016 | PRJEB10597 |
+| BAM Vindija 33.19 (calibración, hg19) | Prüfer et al. 2014 | ERR1025630 |
+| Infraestructura | AWS S3 eu-west-1 | s3://sima-egarmo-2026 |
 
-La heterozigosidad genómica (H) es inversamente proporcional al tamaño
-poblacional efectivo (Ne):
+**Cobertura media SH:** ~1.18× genome-wide  
+**Pipeline:** AdapterRemoval → BWA-MEM (-k16) → Picard MarkDuplicates → mapDamage 2.2.1 (--rescale, MCMC) → hg38
 
-    θ = 4 × Ne × μ       (μ = 1.25×10⁻⁸ por sitio por generación)
-    H ≈ θ / (1 + θ)
+---
 
-Los Neandertales tardíos (Vindija ~44 ka) tienen Ne muy bajo (~3,000)
-— señal de cuello de botella severo post-430 ka.
+## Resultados principales
 
-Los Denisovanos tienen Ne aún menor (~1,500).
+### Heterozigosidad bootstrap (ANGSD v0.941, transversiones, n=100 réplicas)
 
-**Pregunta:** ¿Cuál era Ne en Sima de los Huesos hace 430,000 años?
+| Espécimen | H calibrada | IC 95% | Ne proxy |
+|-----------|------------:|--------|----------:|
+| femurXIII | 0.001183 | 0.001093–0.001236 | ~23,710 |
+| femur_fragment | 0.000925 | 0.000744–0.001082 | ~18,551 |
+| molar_L35 | 0.001207 | 0.001164–0.001249 | ~24,207 |
+| scapula | 0.000590 | 0.000565–0.000612 | ~11,825 |
+| **Media SH** | **0.000977** | 0.000577–0.001241 | **~19,571** |
+| Vindija 33.19* | 0.000701 | — | ~3,000** |
 
-Si Ne(SH) >> Ne(Vindija) → el cuello de botella neandertal ocurrió
-ENTRE 430 ka y 44 ka — evento poblacional específico identificable.
+\* Mismo pipeline, hg19. Factor de inflación: 1.82×  
+\*\* Valor publicado Prüfer et al. 2014
 
-Si Ne(SH) ≈ Ne(Vindija) → el cuello de botella es ANTERIOR a 430 ka
-— origen más profundo de la reducción poblacional neandertal.
+**Ratio Ne(SH)/Ne(Vindija): 1.39× (rango conservador 1.15×–1.65×)**  
+→ El cuello de botella neandertal ocurrió **después de 430 ka**
 
-## Análisis previstos
+### Hallazgo secundario
+Heterogeneidad interna significativa entre especímenes (IC95% no solapantes entre scapula y molar_L35/femurXIII), consistente con depósito diacrónico de la Sima de los Huesos.
 
-### 1. Heterozigosidad directa (2-4 horas)
-```bash
-# Por espécimen — sitios con cobertura ≥3×
-samtools mpileup -q 25 -Q 20 -r chr{1..22} BAM | \
-awk '{hom+=($5~/^[.,]+$/); het+=1} END{print het/(hom+het)}'
-```
+---
 
-### 2. Runs of Homozygosity (ROH)
-ROH largos → Ne pequeño → endogamia / cuello de botella
-Herramienta: plink --homozyg o ROHan (diseñado para ancient DNA)
-
-### 3. PSMC (Pairwise Sequentially Markovian Coalescent)
-Historia demográfica temporal de Ne
-Requiere cobertura ≥10× — SH está al límite (1.18×)
-Posiblemente aplicable solo a Vindija y D17
-
-### 4. Comparación multiespecífica
-| Espécimen | Edad | H esperada | Ne estimado | Fuente |
-|---|---|---|---|---|
-| Sima de los Huesos | 430 ka | ? | ? | Este estudio |
-| Vindija Neandertal | 44 ka | ~0.0007 | ~3,000 | Prüfer 2014 |
-| D17 Denisovano | ~50 ka | ~0.0005 | ~1,500 | Meyer 2012 |
-| Ust'-Ishim | ~45 ka | ~0.0010 | ~7,000 | Fu 2014 |
-| Humano moderno AFR | 0 ka | ~0.0013 | ~10,000 | gnomAD |
-
-### 5. Relación filogenética SH-Neandertal-Denisovano
-Meyer 2016 (Nature 531) muestra ADN nuclear SH más cercano a
-Neandertales que a Denisovanos — pero con mitocondria más cercana
-a Denisovanos (Meyer 2014, Nature 505).
-¿El Ne de SH es consistente con ancestro común Neandertal/Denisovano?
-
-## Software disponible / a instalar
+## Métodos
 
 ```bash
-micromamba activate geodata  # entorno Python/R existente
+# ANGSD heterozigosidad (transversiones only)
+angsd -i BAM -ref hg38.fa -anc hg38.fa \
+      -doSaf 1 -GL 1 -P 8 \
+      -minMapQ 30 -minQ 20 -noTrans 1 \
+      -checkBamHeaders 0 -out results/het/SPECIMEN
 
-# Instalar si necesario:
-micromamba install -c bioconda rohan plink samtools -y
-pip install hapROH --break-system-packages
+# SFS + bootstrap (100 réplicas, bloques 5Mb)
+realSFS SPECIMEN.saf.idx -bootstrap 100 -tole 1e-6 > SPECIMEN_boot.sfs
+
+# Calibración: H_cal = H_raw / 1.82
 ```
+
+**Software:** ANGSD v0.941 · realSFS · ROHan v2.3 · mapDamage 2.2.1 · R 4.x  
+**Infraestructura:** AWS EC2 c5.2xlarge Spot, eu-west-1
+
+---
+
+## Manuscrito
+
+**Título:** Genomic heterogeneity among Sima de los Huesos hominins suggests demographic structure and potentially diachronic accumulation  
+**Revista:** Journal of Human Evolution — Short Communication  
+**Estado:** Borrador v3 enviado a equipo Atapuerca (Bermúdez de Castro + Martínez) — Mayo 2026  
+**APC:** Cubierto por acuerdo CRUE-CSIC UVa–Elsevier
+
+---
+
+## Limitaciones
+
+- Cobertura 1.18× impide ROH fiables (mín. ~5× requerido)
+- Ne values = heterozygosity-derived proxies, no Ne real
+- Argumento diacrónico sugerente, no concluyente
+- Calibración Vindija aproximada (hg19 vs hg38)
+
+---
+
+## Próximos pasos
+
+- [ ] Respuesta equipo Atapuerca → posible coautoría
+- [ ] Decisión editorial AJBA
+- [ ] **ProteomaSH** — variantes funcionales in silico
+
+---
 
 ## Referencias clave
 
-- Meyer M et al. (2016) Nuclear DNA from Sima de los Huesos.
-  Nature 531:504-507. PRJEB10597
-- Prüfer K et al. (2014) Neandertal genome. Nature 505:43-49
-- Meyer M et al. (2012) Denisovan genome. Science 338:222-226
-- Fu Q et al. (2014) Ust'-Ishim. Nature 514:445-449
-- Schiffels S, Durbin R (2014) PSMC/MSMC. Nature Genetics 46:919-925
-- Mafessoni F et al. (2020) ROHan. Genome Research 30:1104-1113
-
-## Directorios
-
-```
-~/PopSize/
-  data/          ← symlinks a BAMs de SH + VCFs arcaicos
-  scripts/       ← scripts de análisis
-  results/       ← outputs
-  README.md      ← este archivo
-```
-
-## Target journal
-
-- Nature Ecology & Evolution
-- Current Biology
-- PLOS Genetics
-
-## Frase semilla para el nuevo chat
-
-*"Los Neandertales tardíos eran una población pequeña y endogámica
-que marchaba hacia la extinción demográfica desde mucho antes de que
-llegaran los humanos modernos. ¿Eran ya pequeños en Atapuerca hace
-430,000 años, o fue algo que ocurrió después?
-Tenemos los BAMs. Calculemos."*
-
-## Estado
-- BAMs procesados: ✅ 5 especímenes SH en hg38
-- Análisis heterozigosidad: ⏳ pendiente
-- ROH: ⏳ pendiente
-- PSMC: ⏳ pendiente (cobertura limitante)
-- Paper: 💡 hipótesis lista
+- Meyer et al. (2016) *Nature* 531:504–507 — PRJEB10597
+- Prüfer et al. (2014) *Nature* 505:43–49
+- Mafessoni et al. (2020) ROHan. *PNAS* 117:14318–14326
+- Massilani et al. (2026) *PNAS* 123:e2534576123
+- Korneliussen et al. (2014) ANGSD. *BMC Bioinformatics* 15:356

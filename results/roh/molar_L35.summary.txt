@@ -1,0 +1,11 @@
+Command line: /tmp/popsize/ROHan/bin/rohan  --rohmu  3e-5  --size  3000000  --tvonly  -t  2  -o  results/roh/molar_L35  ref/hg38.fa  bams/molar_L35.bam 
+Github version: f967605913b264d0b9ac8b015878976a7627fe14 
+Genome-wide theta outside ROH:	0.00214071	0.000698291	0.00290033
+Genome-wide theta inc. ROH:	0.00132814	0.00122622	0.00310846
+Segments unclassified    :	1461000000 (1380000000,4212000000)
+Segments unclassified (%):	34.6866 (32.7635,100)
+Segments in ROH          :	0 (0,0)
+Segments in ROH(%)       :	-nan (-nan,-nan)
+Segments in non-ROH      :	2751000000 (0,2832000000)
+Segments in non-ROH (%)  :	-nan (100,100)
+Avg. length of ROH       :	0 (0,0)

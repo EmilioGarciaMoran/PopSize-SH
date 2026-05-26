@@ -1,0 +1,11 @@
+Command line: /tmp/popsize/ROHan/bin/rohan  --rohmu  3e-5  --size  3000000  --tvonly  -t  2  -o  results/roh/femurXIII  ref/hg38.fa  bams/femurXIII.bam 
+Github version: f967605913b264d0b9ac8b015878976a7627fe14 
+Genome-wide theta outside ROH:	0.00138098	8.00003e-05	0.0028644
+Genome-wide theta inc. ROH:	0.00174338	8.00418e-05	0.00342285
+Segments unclassified    :	1311000000 (1224000000,4212000000)
+Segments unclassified (%):	31.1254 (29.0598,100)
+Segments in ROH          :	0 (0,0)
+Segments in ROH(%)       :	-nan (-nan,-nan)
+Segments in non-ROH      :	2901000000 (0,2988000000)
+Segments in non-ROH (%)  :	-nan (100,100)
+Avg. length of ROH       :	0 (0,0)

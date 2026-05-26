@@ -1,0 +1,26 @@
+# Credenciales AWS — NUNCA al repositorio
+aws/credentials
+aws/*.pem
+aws/*.csv
+aws/*.backup
+
+# BAMs y datos grandes
+data/*.bam
+data/*.bai
+data/*.vcf.gz
+
+# Resultados intermedios grandes
+results/het/*.saf.gz
+results/het/*.saf.pos.gz
+results/het/*.saf.idx
+results/roh/*.hmmmcmc.gz
+results/roh/*.hmmp.gz
+results/roh/*.hmmrohl.gz
+results/roh/*.hEst.gz
+results/roh/*.rginfo.gz
+results/roh/*.pdf
+results/bootstrap/*.sfs
+
+# Temporales
+*.tmp
+*.log

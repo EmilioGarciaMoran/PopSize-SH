@@ -110,9 +110,9 @@ Mean p(ROH) 0.033–0.050, no window >0.50. Discarded.
 
 | Path | Content |
 |---|---|
-| `sima_hg38/results/bam_rescaled/` | 5 SH BAMs hg38 + mapDamage (1.18x) |
+| `sima_hg38/results/bam_rescaled/` | 5 SH BAMs hg38 + mapDamage (~0.02x for all 5 combined; the earlier "1.18x" was wrong) |
 | `eastwest/sima/ERR995357-361_sorted.bam` | 5 SH BAMs hg38 |
-| `bams/Sima_FemurXIII.hg19.sorted.bam` | FemurXIII hg19 |
+| `bams/Sima_incisor_AT5482.hg19.sorted.bam` | Incisor AT-5482 hg19 (ERR995358); previously misnamed Sima_FemurXIII.hg19.sorted.bam |
 | `bams/Ust_Ishim_*.bam` (1.7GB) | Ust-Ishim hg19 |
 | `bams/Denisova_*.bam` (5.9GB) | Denisova hg19 |
 | `bams/Neandertal_*.bam` (1.7GB) | Vindija hg19 |

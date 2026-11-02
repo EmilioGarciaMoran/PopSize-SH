@@ -16,6 +16,25 @@ The retracted results are kept below, clearly marked, rather than deleted — an
 **Why the estimates fail**
 
 1. **Effective coverage is ~0.002×, not 1.18×.** Each specimen's SFS covers 3–10 million sites (0.10–0.34 % of the genome). Measured directly on the femurXIII BAM (`samtools depth -Q 30 -q 20`): 6,618,629 sites, **97.7 % of them with a single read**.
+
+   This needs no download. ENA reports the deposited read counts for PRJEB10597, and cross-tabulating them against the SFS site counts gives the implied read length and the genome-wide coverage:
+
+   | Specimen | Reads (ENA) | Sites in SFS | bp/read | Coverage |
+   |---|---|---|---|---|
+   | femurXIII (ERR995357) | 155,538 | 6,489,101 | 41.7 | 0.0023× |
+   | femur_fragment (ERR995361) | 234,557 | 9,833,789 | 41.9 | 0.0034× |
+   | incisor (ERR995358) | 726,377 | 33,189,889 | 45.7 | 0.0115× |
+   | molar_L35 (ERR995360) | 69,404 | 2,991,570 | 43.1 | 0.0010× |
+   | scapula (ERR995359) | 97,475 | 6,354,640 | **65.2** | 0.0022× |
+   | **All five** | **1,283,351** | **58,858,989** | 45.9 | **0.0204×** |
+
+   ```bash
+   curl -s 'https://www.ebi.ac.uk/ena/portal/api/filereport?accession=PRJEB10597&result=read_run&fields=run_accession,sample_title,read_count,submitted_ftp&format=tsv' | column -t -s $'\t'
+   ```
+
+   1.18× would require ~81 million 42 bp reads. ENA holds 1.28 million for all five specimens — **63× fewer**. The "1.18×" figure was almost certainly mean depth computed over covered positions only, which is ~1 by construction when nearly every covered site carries a single read: the right number for the wrong quantity.
+
+   The same table verifies specimen identity. Implied read length is 42–46 bp for four of five, as expected for aDNA under an L35 filter, so the hg38 file labels are correct. (The mislabelled `bams/Sima_FemurXIII.hg19.sorted.bam`, corrected in commit `ea262eb`, was confined to the February D-statistics download and did not propagate to the hg38 set.)
 2. **At one read per site, heterozygosity is not identifiable.** Observing a heterozygote requires both alleles at the same position, i.e. ≥2 reads. With one read, a heterozygote and a derived homozygote produce the same observation, so SFS[1] and SFS[2] are not separable and the output is driven by the model, not the data. This is why scapula shows SFS[2] ≈ 0.
 3. **Control experiment.** A genome of known coverage (Denisova chr1 BAM, 0.92× effective) was downsampled to Sima-matched depths and run through the identical pipeline, 3 replicates per level:
 
@@ -32,11 +51,13 @@ The retracted results are kept below, clearly marked, rather than deleted — an
 
 4. **Calibration factor 1.82× has no basis.** The reference values used (Vindija 0.000700, Denisova 0.000500) do not match the published ones (1.6×10⁻⁴ and 1.8×10⁻⁴; Prüfer et al. 2017). With the published values the two factors would be ~8× and ~5× and would not agree. Calibration genomes were also processed on hg19 at ~30×, SH on hg38 at ~0.002×.
 
-5. **The pseudo-haploid alternative lacks power.** Between-individual mismatch (one random read per individual at shared sites) is the only diversity measure compatible with single-read data. The three usable specimens share ~57,000 sites in total, where ~3 real differences are expected; power to detect a 40 % excess is 14 %, before accounting for sequencing error. ~890,000 shared sites would be needed for 80 % power.
+5. **Only three specimens are usable.** The incisor was already excluded for contamination (H 2.78× the mean of the others). The scapula must go too: its implied read length is 65.2 bp against 42–46 bp for the rest, and modern DNA is longer than ancient DNA — an indication of contamination entirely independent of the H values, consistent with Meyer et al. 2016 flagging it as the most contaminated sample. That leaves femurXIII, femur_fragment and molar_L35. It also removes what little was left of "Cluster B (MIS 12)", which was the scapula alone.
+
+6. **The pseudo-haploid alternative lacks power.** Between-individual mismatch (one random read per individual at shared sites) is the only diversity measure compatible with single-read data. The three usable specimens share ~57,000 sites in total, where ~3 real differences are expected; power to detect a 40 % excess is 14 %, before accounting for sequencing error. ~890,000 shared sites would be needed for 80 % power.
 
 **What would be needed:** targeted capture (ArchaicPlus-type panel, Bossoms Mesa et al. 2026), which both restores observable heterozygosity at enriched positions and makes the results directly comparable to late Neandertals at the same positions with the same statistic.
 
-**Diachronic accumulation (MIS 12 / MIS 11)** reverts to an open stratigraphic question. The genetic data provide no evidence for it: the FST clusters rest on an uncorrected estimator (sample-size-corrected estimators — Reynolds, Hudson/Bhatia — give ≈0 or negative values), and "Cluster B" was the scapula alone, which carries substantial modern contamination.
+**Diachronic accumulation (MIS 12 / MIS 11)** reverts to an open stratigraphic question. The genetic data provide no evidence for it: the FST clusters rest on an uncorrected estimator (sample-size-corrected estimators — Reynolds, Hudson/Bhatia — give ≈0 or negative values), and "Cluster B" was the scapula alone, now excluded for contamination (point 5).
 
 Full audit, with per-item findings: see `claude/AUDITORIA_POPSIZE_2026-10-28.md` in the author's project notes.
 
@@ -50,6 +71,7 @@ Full audit, with per-item findings: see `claude/AUDITORIA_POPSIZE_2026-10-28.md`
 | PopSize v6 | ❌ **Conclusions retracted (28 Oct 2026)** — never submitted; collaborators informed |
 | Calibration 1.82× | ❌ **Invalid** — reference values do not match Prüfer et al. 2017 |
 | FST / MIS clusters | ❌ **Not supported** — uncorrected estimator; values not traceable to a script |
+| Usable specimens | ⚠️ **Three** — femurXIII, femur_fragment, molar_L35. Incisor and scapula excluded for contamination |
 | Collaboration | ⏳ Open — targeted capture is the viable route |
 
 ---
@@ -202,13 +224,15 @@ Metadata: ~/PopSize/data/edmond_goyet.json
 
 ## Lessons learned
 
-1. **Check effective coverage before choosing an estimator.** The quantity that matters is reads per site, not reads per genome. At ~1 read per covered site, per-individual heterozygosity is not an observable.
-2. **Control with a genome of known value.** Downsampling a known genome through the identical pipeline would have caught this before any manuscript existed. It took two hours.
-3. **A calibration factor cannot rescue a non-identifiable quantity** — and reference values must be checked against the source paper, not carried over from notes.
-4. **Compare like with like.** H against H, or Ne against Ne from the same estimator. Never an H-derived Ne against a PSMC Ne. Never FST against IBS.
-5. **Hard-coded numbers in plotting scripts are a reproducibility failure** even when nothing is wrong with them. Here, four of six FST values could be reproduced after the fact and two could not.
-6. **Ust-Ishim excluded** — modern human BAM without rescaling gives factor 19.8x (artifact). Correct call.
-7. **Pseudo-haploid genotypes** (Goyet LowCoverages) have Het=0 by design — use IBS, not H.
+1. **Check effective coverage before choosing an estimator.** The quantity that matters is reads per site, not reads per genome. At ~1 read per covered site, per-individual heterozygosity is not an observable. "Mean depth" reported over covered positions only is ~1 by construction here and says nothing about genome-wide coverage — that confusion is where the 1.18× came from.
+2. **Start from the archive's own read counts.** One `curl` to the ENA filereport API gives reads per run. Dividing by genome size bounds what any estimator can deliver, before a single byte is downloaded. It would have ended this project in ten seconds, eight months ago.
+3. **Control with a genome of known value.** Downsampling a known genome through the identical pipeline would have caught this before any manuscript existed. It took two hours.
+4. **Read length is a contamination assay.** Implied bp/read (sites ÷ reads) flagged the scapula at 65 bp against 42–46 bp for the rest, independently of any H value. Cheap, and it uses numbers already in hand.
+5. **A calibration factor cannot rescue a non-identifiable quantity** — and reference values must be checked against the source paper, not carried over from notes.
+6. **Compare like with like.** H against H, or Ne against Ne from the same estimator. Never an H-derived Ne against a PSMC Ne. Never FST against IBS.
+7. **Hard-coded numbers in plotting scripts are a reproducibility failure** even when nothing is wrong with them. Here, four of six FST values could be reproduced after the fact and two could not.
+8. **Ust-Ishim excluded** — modern human BAM without rescaling gives factor 19.8x (artifact). Correct call.
+9. **Pseudo-haploid genotypes** (Goyet LowCoverages) have Het=0 by design — use IBS, not H.
 
 ---
 
